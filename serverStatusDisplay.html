@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .server-list {
+            list-style-type: none;
+            padding: 0;
+            max-width: 400px;
+            margin: auto;
+        }
+        .server-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+        }
+        .online {
+            background-color: green;
+        }
+        .offline {
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Server Status</h1>
+    <ul id="serverList" class="server-list"></ul>
+
+    <script>
+        async function loadServers() {
+            try {
+                const response = await fetch("AllServers.json");
+                const serverData = await response.json();
+                const listElement = document.getElementById("serverList");
+                listElement.innerHTML = "";
+                
+                serverData.forEach(server => {
+                    const [name, status] = server.split(" = ");
+                    const li = document.createElement("li");
+                    li.textContent = name + " - " + status;
+                    li.classList.add("server-item", status === "online" ? "online" : "offline");
+                    listElement.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Fout bij het laden van de servers:", error);
+            }
+        }
+        
+        async function checkAllServers() {
+            try {
+                await fetch("Servers.py", { method: "POST" }); // Voert de Python-functie uit via een POST-aanvraag
+            } catch (error) {
+                console.error("Fout bij het uitvoeren van checkAllServers:", error);
+            }
+        }
+        
+        function updateServers() {
+            checkAllServers().then(loadServers);
+        }
+        
+        loadServers();
+        setInterval(updateServers, 10000); // Elke 10 seconden checkAllServers() uitvoeren en de lijst verversen
+    </script>
+</body>
+</html>
